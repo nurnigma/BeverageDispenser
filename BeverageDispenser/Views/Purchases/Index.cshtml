@@ -1,0 +1,90 @@
+﻿@model ValueTuple<List<BeveragesInfo>, List<Coin>>;
+
+
+<h1>Напитки</h1>
+<div>@TempData["ErrorMessage"]</div>
+<form method="post" asp-action="Select">
+<table>
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Цена за один напиток</th>
+            <th>Количество</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var drink in Model.Item1)
+        {
+           
+            <tr>
+                <td>
+                    <input type="hidden" name="drinkId" value="@drink.DrinkId" />
+                    <button type="submit" class="drink-btn" data-price="@drink.Price" data-count="@drink.Count">@drink.Name</button>
+                </td>
+                <td>@drink.Price</td>
+                <td><input type="number" name="count" value="@drink.Count" min="0"/></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>Внести сумму:</div>
+<input type="number" id="amount" min="0" readonly/>
+    @foreach(var coin in Model.Item2)
+    {
+       <button type="button" class="coin-btn" data-value="@((int)coin.Denomination)" disabled = "@(!coin.IsDispenser)">@coin.Denomination</button>
+
+    }
+<div><span id="totalAmount"></span></div>
+<input type="hidden" name="totalAmount" id="totalAmountInput" />
+
+<div>Сдача: <span id="change">@((TempData["Change"] == null) ? 0 : TempData["Change"])</span></div>
+@if (TempData["Change"] != null)
+{
+<button type="button" id="resetChangeBtn">Сбросить сдачу</button>
+}
+
+@if (TempData.TryGetValue("IsPurchased", out var value) && (bool)value)
+{
+    <div id="purchaseMessage" style="display:block">Вы купили напиток: @TempData["DrinkName"]</div>
+}
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+        
+
+  const coinButtons = document.querySelectorAll('.coin-btn');
+  const amountInput = document.getElementById('amount');
+  const totalAmountSpan = document.getElementById('totalAmount');
+
+  let totalAmount = 0;
+
+  coinButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const value = parseFloat(button.dataset.value);
+      totalAmount += value;
+      totalAmountSpan.textContent = totalAmount.toFixed(2);
+      amountInput.value = totalAmount.toFixed(2);
+      totalAmountInput.value = totalAmount.toFixed(2);
+       
+
+    });
+  });
+ 
+  $(document).ready(function() {
+        $('#resetChangeBtn').click(function() {
+            $.ajax({
+                url: '/Purchases/ResetChange',
+                type: 'POST',
+                success: function() {
+                    $('#change').text('0');
+                },
+                error: function() {
+                    console.log('An error occurred during the AJAX request.');
+                }
+            });
+        });
+    });
+</script>
+

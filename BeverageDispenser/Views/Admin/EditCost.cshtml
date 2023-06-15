@@ -1,0 +1,20 @@
+﻿@using BeverageDispenser.Models
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+
+@model Cost;
+
+<h2>Изменение количества и цены напитка</h2>
+
+<form asp-action="EditCost" asp-route-id="@Model.Id" method="post">
+  
+    <div class="form-group">
+        <label for="count">Количество:</label>
+        <input type="number" id="count" name="Count" class="form-control" value="@Model.Count" required />
+    </div>
+    <div class="form-group">
+        <label for="price">Цена:</label>
+        <input type="number" id="price" name="Price" class="form-control" value="@Model.Price" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

@@ -1,0 +1,113 @@
+﻿@using BeverageDispenser.Models
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@model ValueTuple<List<BeveragesInfo>, List<Coin>>;
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    button {
+        padding: 4px 8px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<h1>Управление автоматом для напитков</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Количество</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var drink in Model.Item1)
+        {
+            <tr>
+                <td>@drink.Name</td>
+                <td>@drink.Price</td>
+                <td>@drink.Count</td>
+                <td>
+            <a href="@Url.Action("EditDrink", "Admin", new { id = drink.DrinkId, secretKey = Configuration["AdminSecretKey"] })" class="btn btn-primary">Изменить название напитка</a>
+ 
+            <a href="@Url.Action("Delete", "Admin", new { id = drink.DrinkId, secretKey = Configuration["AdminSecretKey"] })" class="btn btn-primary">Удалить</a>
+
+            <a href="@Url.Action("EditCost", "Admin", new { id = drink.DrinkId, secretKey = Configuration["AdminSecretKey"] })" class="btn btn-primary">Изменить товарный запас (цена и количество)</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a href="/Admin/Create?secretKey=@Configuration["AdminSecretKey"]" class="btn btn-primary">Добавить напиток</a>
+</div>
+<br/>
+<table>
+    <tread>
+        <tr>
+            <th>Id</th>
+            <th>Номенал</th>
+            <th>Включение</th>
+        </tr>
+    </tread>
+    <tbody>
+        @foreach(var coin in Model.Item2)
+        {
+            <tr>
+                <td id="@coin.Id">@coin.Id</td>
+                <td>@coin.Denomination</td>
+                <td><div class="form-check form-switch">
+           <input class="form-check-input" type="checkbox" role="switch" data-id="@coin.Id"
+            @coin.IsDispenser ? checked : ''>
+            </div>
+            </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+    $(document).ready(function() {
+    $('.form-check-input').on('change', function() {
+        var coinId = $(this).data('id');
+        var isDis = $(this).is(':checked');
+        
+        $.ajax({
+            method: 'POST',
+            url: '/Admin/EditCoin/' + coinId,
+            data: { isDis: isDis },
+            success: function(response) {
+                console.log('Value updated successfully in the database.');
+            },
+            error: function(error) {
+                console.error('Error updating value in the database:', error);
+            }
+        });
+    });
+});
+</script>
